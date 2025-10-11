@@ -20,11 +20,11 @@ const Navbar = () => {
           onClick={() => navigate('/')}
         >
           <div className="relative">
-            <img
-              src={aivoraIcon}
-              alt="Aivora AI Icon"
-              className="w-10 h-10 sm:w-12 sm:h-12 transition-transform group-hover:scale-110 duration-300"
-            />
+          <img
+  src={aivoraIcon}
+  alt="Aivora AI Icon"
+  className="w-20 h-20 sm:w-20 sm:h-20 object-contain transition-transform group-hover:scale-110 duration-300"
+/>
             {/* Glow effect on hover */}
             <div className="absolute inset-0 bg-orange-400 rounded-full blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
           </div>

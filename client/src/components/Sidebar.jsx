@@ -27,6 +27,13 @@ const navItems = [
 const Sidebar = ({ sidebar, setSidebar }) => {
   const { user } = useUser()
   const { signOut, openUserProfile } = useClerk()
+  
+  // Check if user has premium plan from metadata
+  const hasPremiumPlan = user?.publicMetadata?.plan === 'premium' || 
+                        user?.publicMetadata?.subscription_plan === 'premium' ||
+                        user?.publicMetadata?.hasPremiumPlan === true ||
+                        user?.privateMetadata?.plan === 'premium' ||
+                        user?.unsafeMetadata?.plan === 'premium'
 
   return (
     <div
@@ -94,10 +101,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
               {user.fullName}
             </h1>
             <p className="text-xs text-orange-600 font-semibold">
-              <Protect plan="premium" fallback="Free">
-                Premium
-              </Protect>{' '}
-              Plan
+              {hasPremiumPlan ? 'Premium' : 'Free'} Plan
             </p>
           </div>
         </div>

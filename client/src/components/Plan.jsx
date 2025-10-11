@@ -11,7 +11,17 @@ const Plan = () => {
       </div>
 
       <div className='mt-14 max-sm:mx-8'>
-        <PricingTable />
+        {/* 
+          Clerk's PricingTable with proper configuration
+          This should automatically update user metadata when subscription changes
+        */}
+        <PricingTable 
+          appearance={{
+            elements: {
+              // Customize the appearance if needed
+            }
+          }}
+        />
       </div>
 
     </div>

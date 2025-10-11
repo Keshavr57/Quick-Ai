@@ -24,7 +24,7 @@ const Footer = () => {
             <img
               src={aivoraIcon}
               alt="Aivora AI Icon"
-              className="w-16 h-16 transition-transform duration-300 group-hover:rotate-6"
+              className="w-20 h-20 sm:w-20 sm:h-20 object-contain transition-transform group-hover:scale-110 duration-300"
             />
             <h1 className="text-2xl font-extrabold text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text drop-shadow-sm">
               Aivora <span className="text-orange-400">AI</span>
