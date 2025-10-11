@@ -23,7 +23,7 @@ const Layout = () => {
             <img
               src={aivoraIcon}
               alt="Aivora AI Icon"
-              className="w-14 h-14 sm:w-12 sm:h-12 transition-transform group-hover:scale-110 duration-300"
+               className="w-20 h-20 sm:w-20 sm:h-20 object-contain transition-transform group-hover:scale-110 duration-300"
             />
             {/* Soft glow */}
             <div className="absolute inset-0 bg-orange-400 rounded-full blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
