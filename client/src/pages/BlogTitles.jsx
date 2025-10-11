@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import Markdown from 'react-markdown'
 import axios from 'axios'
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
 
 const BlogTitles = () => {
 

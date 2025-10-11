@@ -1,7 +1,8 @@
 {
-  "name": "client",
+  "name": "aivora-client",
   "private": true,
   "version": "0.0.0",
+  "description": "Aivora web client: AI tools for images, content, and productivity",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +14,7 @@
     "@clerk/clerk-react": "^5.47.0",
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.12.2",
+    "framer-motion": "^12.23.22",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

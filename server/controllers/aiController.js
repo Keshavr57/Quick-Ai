@@ -5,6 +5,7 @@ import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs'
 import pdf from 'pdf-parse/lib/pdf-parse.js'
+import FormData from 'form-data'
 
 const AI = new OpenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -13,7 +14,7 @@ const AI = new OpenAI({
 
 export const generateArticle = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const { prompt, length } = req.body;
 
         const response = await AI.chat.completions.create({
@@ -38,7 +39,7 @@ export const generateArticle = async (req, res)=>{
 
 export const generateBlogTitle = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const { prompt } = req.body;
 
         const response = await AI.chat.completions.create({
@@ -63,16 +64,23 @@ export const generateBlogTitle = async (req, res)=>{
 
 export const generateImage = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const { prompt, publish } = req.body;
 
         const formData = new FormData();
         formData.append('prompt', prompt);
 
-        const { data } = await axios.post("https://clipdrop-api.co/text-to-image/v1", formData, {
-            headers: { 'x-api-key': process.env.CLIPDROP_API_KEY },
-            responseType: "arraybuffer",
-        });
+        const { data } = await axios.post(
+            "https://clipdrop-api.co/text-to-image/v1",
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders?.(),
+                    'x-api-key': process.env.CLIPDROP_API_KEY,
+                },
+                responseType: "arraybuffer",
+            }
+        );
 
         const base64Image = `data:image/png;base64,${Buffer.from(data, 'binary').toString('base64')}`;
 
@@ -91,7 +99,7 @@ export const generateImage = async (req, res)=>{
 
 export const removeImageBackground = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const image = req.file;
 
         const { secure_url } = await cloudinary.uploader.upload(image.path, {
@@ -116,7 +124,7 @@ export const removeImageBackground = async (req, res)=>{
 
 export const removeImageObject = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const { object } = req.body;
         const image = req.file;
 
@@ -140,7 +148,7 @@ export const removeImageObject = async (req, res)=>{
 
 export const resumeReview = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const { userId } = req.auth;
         const resume = req.file;
 
         if(resume.size > 5 * 1024 * 1024){
