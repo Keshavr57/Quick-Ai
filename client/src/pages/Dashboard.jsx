@@ -7,7 +7,7 @@ import CreationItem from '../components/Creationitem'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
 
 const Dashboard = () => {
  
