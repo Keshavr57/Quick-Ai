@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useAuth } from "../context/AuthContext";
 
 const Hero = () => {
   const messages = [
@@ -14,8 +14,7 @@ const Hero = () => {
   const [messageIndex, setMessageIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const navigate = useNavigate();
-  const { user } = useUser();
-  const { openSignIn } = useClerk();
+  const { user } = useAuth();
 
   // Typing effect
   useEffect(() => {
@@ -41,7 +40,14 @@ const Hero = () => {
     if (user) {
       navigate("/ai");
     } else {
-      openSignIn();
+      navigate("/login");
+    }
+  };
+
+  const handleViewFeatures = () => {
+    const aiToolsSection = document.getElementById('ai-tools');
+    if (aiToolsSection) {
+      aiToolsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -80,8 +86,11 @@ const Hero = () => {
           >
             Start creating now
           </button>
-          <button className="border-2 border-orange-400 text-orange-600 px-8 py-3.5 rounded-full font-semibold hover:bg-orange-50 hover:border-orange-500 hover:scale-105 active:scale-95 transition-all">
-            Watch demo
+          <button 
+            onClick={handleViewFeatures}
+            className="border-2 border-orange-400 text-orange-600 px-8 py-3.5 rounded-full font-semibold hover:bg-orange-50 hover:border-orange-500 hover:scale-105 active:scale-95 transition-all"
+          >
+            View Features
           </button>
         </div>
 

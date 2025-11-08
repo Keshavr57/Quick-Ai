@@ -1,6 +1,7 @@
-
-import { Route, Routes,} from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 import Layout from './pages/Layout'
 import Dashboard from './pages/Dashboard'
 import WriteArticle from './pages/WriteArticle'
@@ -11,7 +12,7 @@ import RemoveObject from './pages/RemoveObject'
 import ReviewResume from './pages/ReviewResume'
 import Community from './pages/Community'
 
-import {Toaster} from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast'
 
 
 
@@ -23,7 +24,9 @@ const App = () => {
       <Toaster/>
     
       <Routes>
-        <Route path='/' element={<Home />}/>
+        <Route path='/' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/signup' element={<Signup />} />
         <Route path='/ai' element={<Layout />}>
           <Route index element={<Dashboard/>} />
           <Route path='write-article' element={<WriteArticle/>} />

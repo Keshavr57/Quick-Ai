@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+
+# Environment variables (IMPORTANT: Never commit this!)
+.env
+.env.local
+.env.production
+
+# Prisma generated files
+/generated/prisma
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Temporary files
+*.tmp
+*.temp

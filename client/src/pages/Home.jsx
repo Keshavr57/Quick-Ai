@@ -13,7 +13,9 @@ const Home = () => {
       <Hero />
       <AiToools/>
       <Testimonial />
-      <Plan/>
+      <div id="pricing">
+        <Plan/>
+      </div>
       <Footer/>
     </>
   )

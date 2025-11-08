@@ -1,6 +1,5 @@
 import OpenAI from "openai";
-import sql from "../configs/db.js";
-import { clerkClient } from "@clerk/express";
+import prisma from '../configs/db.js';
 import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs'
@@ -14,7 +13,7 @@ const AI = new OpenAI({
 
 export const generateArticle = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const { prompt, length } = req.body;
 
         const response = await AI.chat.completions.create({
@@ -26,8 +25,14 @@ export const generateArticle = async (req, res)=>{
 
         const content = response.choices[0].message.content;
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type) 
-        VALUES (${userId}, ${prompt}, ${content}, 'article')`;
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt,
+                content,
+                type: 'article'
+            }
+        });
 
         res.json({ success: true, content });
 
@@ -39,7 +44,7 @@ export const generateArticle = async (req, res)=>{
 
 export const generateBlogTitle = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const { prompt } = req.body;
 
         const response = await AI.chat.completions.create({
@@ -51,8 +56,14 @@ export const generateBlogTitle = async (req, res)=>{
 
         const content = response.choices[0].message.content;
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type) 
-        VALUES (${userId}, ${prompt}, ${content}, 'blog-title')`;
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt,
+                content,
+                type: 'blog-title'
+            }
+        });
 
         res.json({ success: true, content });
 
@@ -64,42 +75,76 @@ export const generateBlogTitle = async (req, res)=>{
 
 export const generateImage = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const { prompt, publish } = req.body;
 
-        const formData = new FormData();
-        formData.append('prompt', prompt);
+        console.log('🎨 Image generation request:', { prompt });
+        
+        // Using Pollinations.ai - Completely FREE, no API key needed!
+        const cleanPrompt = prompt.trim().replace(/\s+/g, ' ');
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}`;
+        
+        console.log('📡 Fetching image from Pollinations.ai...');
+        console.log('URL:', imageUrl);
+        
+        // Download the image with proper headers
+        const response = await axios({
+            method: 'GET',
+            url: imageUrl,
+            responseType: 'arraybuffer',
+            timeout: 90000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Accept': 'image/*'
+            },
+            maxRedirects: 5,
+        });
 
-        const { data } = await axios.post(
-            "https://clipdrop-api.co/text-to-image/v1",
-            formData,
-            {
-                headers: {
-                    ...formData.getHeaders?.(),
-                    'x-api-key': process.env.CLIPDROP_API_KEY,
-                },
-                responseType: "arraybuffer",
+        console.log('✅ Image fetched, size:', response.data.length, 'bytes');
+
+        const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
+
+        console.log('☁️ Uploading to Cloudinary...');
+        const { secure_url } = await cloudinary.uploader.upload(base64Image, {
+            folder: 'aivora-generations',
+            resource_type: 'image'
+        });
+        console.log('✅ Uploaded to Cloudinary:', secure_url);
+
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt,
+                content: secure_url,
+                type: 'image',
+                publish: publish ?? false
             }
-        );
-
-        const base64Image = `data:image/png;base64,${Buffer.from(data, 'binary').toString('base64')}`;
-
-        const { secure_url } = await cloudinary.uploader.upload(base64Image);
-
-        await sql`INSERT INTO creations (user_id, prompt, content, type, publish) 
-        VALUES (${userId}, ${prompt}, ${secure_url}, 'image', ${publish ?? false})`;
+        });
 
         res.json({ success: true, content: secure_url });
 
     } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: error.message });
+        console.error('❌ Image generation error:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            message: error.message
+        });
+        
+        // Better error handling
+        let errorMessage = 'Failed to generate image. Please try again.';
+        if (error.code === 'ECONNABORTED') {
+            errorMessage = 'Request timeout. Please try again.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        res.json({ success: false, message: errorMessage });
     }
 }
 
 export const removeImageBackground = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const image = req.file;
 
         const { secure_url } = await cloudinary.uploader.upload(image.path, {
@@ -111,8 +156,14 @@ export const removeImageBackground = async (req, res)=>{
             ]
         });
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type) 
-        VALUES (${userId}, 'Remove background from image', ${secure_url}, 'image')`;
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt: 'Remove background from image',
+                content: secure_url,
+                type: 'image'
+            }
+        });
 
         res.json({ success: true, content: secure_url });
 
@@ -124,7 +175,7 @@ export const removeImageBackground = async (req, res)=>{
 
 export const removeImageObject = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const { object } = req.body;
         const image = req.file;
 
@@ -135,8 +186,14 @@ export const removeImageObject = async (req, res)=>{
             resource_type: 'image'
         });
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type) 
-        VALUES (${userId}, ${`Removed ${object} from image`}, ${imageUrl}, 'image')`;
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt: `Removed ${object} from image`,
+                content: imageUrl,
+                type: 'image'
+            }
+        });
 
         res.json({ success: true, content: imageUrl });
 
@@ -148,7 +205,7 @@ export const removeImageObject = async (req, res)=>{
 
 export const resumeReview = async (req, res)=>{
     try {
-        const { userId } = req.auth;
+        const userId = req.userId; // From JWT auth middleware
         const resume = req.file;
 
         if(resume.size > 5 * 1024 * 1024){
@@ -169,8 +226,14 @@ export const resumeReview = async (req, res)=>{
 
         const content = response.choices[0].message.content;
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type) 
-        VALUES (${userId}, 'Review the uploaded resume', ${content}, 'resume-review')`;
+        await prisma.creation.create({
+            data: {
+                userId,
+                prompt: 'Review the uploaded resume',
+                content,
+                type: 'resume-review'
+            }
+        });
 
         res.json({ success: true, content });
 

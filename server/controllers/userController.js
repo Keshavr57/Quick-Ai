@@ -1,61 +1,67 @@
-import sql from "../configs/db.js";
+import prisma from '../configs/db.js';
 
-
-export const getUserCreations = async (req, res)=>{
+export const getUserCreations = async (req, res) => {
     try {
-        const {userId} = req.auth()
+        const userId = req.userId; // From auth middleware
 
-       const creations = await sql`SELECT * FROM creations WHERE user_id = ${userId} ORDER BY created_at DESC`;
+        const creations = await prisma.creation.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
 
         res.json({ success: true, creations });
     } catch (error) {
-        res.json({ success: false, message: error.message });
+        console.error('Get user creations error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
 
-export const getPublishedCreations = async (req, res)=>{
+export const getPublishedCreations = async (req, res) => {
     try {
-
-       const creations = await sql`
-       SELECT * FROM creations WHERE publish = true ORDER BY created_at DESC`;
+        const creations = await prisma.creation.findMany({
+            where: { publish: true },
+            orderBy: { createdAt: 'desc' }
+        });
 
         res.json({ success: true, creations });
     } catch (error) {
-        res.json({ success: false, message: error.message });
+        console.error('Get published creations error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
 
-export const toggleLikeCreation = async (req, res)=>{
+export const toggleLikeCreation = async (req, res) => {
     try {
+        const userId = req.userId; // From auth middleware
+        const { id } = req.body;
 
-        const {userId} = req.auth()
-        const {id} = req.body
+        const creation = await prisma.creation.findUnique({ where: { id: parseInt(id) } });
 
-        const [creation] = await sql`SELECT * FROM creations WHERE id = ${id}`
-
-        if(!creation){
-            return res.json({ success: false, message: "Creation not found" })
+        if (!creation) {
+            return res.status(404).json({ success: false, message: "Creation not found" });
         }
 
-        const currentLikes = creation.likes;
+        const currentLikes = creation.likes || [];
         const userIdStr = userId.toString();
         let updatedLikes;
         let message;
 
-        if(currentLikes.includes(userIdStr)){
-            updatedLikes = currentLikes.filter((user)=>user !== userIdStr);
-            message = 'Creation Unliked'
-        }else{
-            updatedLikes = [...currentLikes, userIdStr]
-            message = 'Creation Liked'
+        if (currentLikes.includes(userIdStr)) {
+            updatedLikes = currentLikes.filter((user) => user !== userIdStr);
+            message = 'Creation Unliked';
+        } else {
+            updatedLikes = [...currentLikes, userIdStr];
+            message = 'Creation Liked';
         }
 
-        const formattedArray = `{${updatedLikes.join(',')}}`
-
-       await sql`UPDATE creations SET likes = ${formattedArray}::text[] WHERE id = ${id}`;
+        await prisma.creation.update({
+            where: { id: parseInt(id) },
+            data: { likes: updatedLikes }
+        });
 
         res.json({ success: true, message });
     } catch (error) {
-        res.json({ success: false, message: error.message });
+        console.error('Toggle like error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};

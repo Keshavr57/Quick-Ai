@@ -1,49 +1,49 @@
-import { clerkClient } from "@clerk/express";
+import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
 
-// Middleware to check userId and hasPremiumPlan
+const prisma = new PrismaClient();
 
-export const auth = async (req, res, next)=>{
+// Middleware to check JWT token and user authentication
+export const auth = async (req, res, next) => {
     try {
-        const { userId, has } = req.auth;
-
-        // Prefer Clerk entitlements via `has`, fallback to user metadata flags set after Stripe webhook
-        let hasPremiumPlan = false;
-        if (typeof has === 'function') {
-            try {
-                hasPremiumPlan = await has({ plan: 'premium' });
-            } catch (_) {
-                hasPremiumPlan = false;
-            }
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Unauthorized - No token provided' });
         }
 
-        const user = await clerkClient.users.getUser(userId);
-
-        if (!hasPremiumPlan) {
-            const meta = user.privateMetadata || {};
-            const pub = user.publicMetadata || {};
-            if (
-                meta.subscription_status === 'active' ||
-                meta.stripe_subscription_status === 'active' ||
-                pub.plan === 'premium'
-            ) {
-                hasPremiumPlan = true;
-            }
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        
+        // Get user from database
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'User not found' });
         }
-
-        if(!hasPremiumPlan && user.privateMetadata.free_usage){
-            req.free_usage = user.privateMetadata.free_usage
-        } else{
-            await clerkClient.users.updateUserMetadata(userId, {
-                privateMetadata: {
-                    free_usage: 0
-                }
-            })
-            req.free_usage = 0;
-        }
-
-        req.plan = hasPremiumPlan ? 'premium' : 'free';
-        next()
+        
+        // Store user info in request
+        req.userId = user.id;
+        req.user = user;
+        req.auth = { userId: user.id }; // For compatibility with existing code
+        
+        // Check plan
+        const hasPremiumPlan = user.plan === 'premium';
+        req.plan = user.plan;
+        req.free_usage = user.freeUsage;
+        
+        next();
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        console.error('Auth middleware error:', error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ success: false, message: 'Invalid token' });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ success: false, message: 'Token expired' });
+        }
+        res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-}
+};

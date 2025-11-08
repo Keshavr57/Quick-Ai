@@ -1,32 +1,25 @@
 import React, { useEffect, useState } from 'react'
-// import { dummyCreationData } from '../assets/assets'
-import { Gem, Sparkles } from 'lucide-react'
-import { Protect, useAuth, useUser } from '@clerk/clerk-react'
-// import CreationItem from '../components/CreationItem'
+import { Gem, Home, Sparkles } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import CreationItem from '../components/Creationitem'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
 
 const Dashboard = () => {
- 
+  const navigate = useNavigate();
   const [creations, setCreations] = useState([])
   const [loading, setLoading] = useState(true)
-  const { getToken } = useAuth()
-  const { user } = useUser()
+  const { user, token } = useAuth()
   
-  // Check if user has premium plan from metadata
-  const hasPremiumPlan = user?.publicMetadata?.plan === 'premium' || 
-                        user?.publicMetadata?.subscription_plan === 'premium' ||
-                        user?.publicMetadata?.hasPremiumPlan === true ||
-                        user?.privateMetadata?.plan === 'premium' ||
-                        user?.unsafeMetadata?.plan === 'premium'
+  const hasPremiumPlan = user?.plan === 'premium';
 
   const getDashboardData = async ()=>{
     try {
       const { data } = await axios.get('/api/user/get-user-creations', {
-        headers : {Authorization: `Bearer ${await getToken()}`}
+        headers : {Authorization: `Bearer ${token}`}
       })
 
       if (data.success) {
@@ -46,6 +39,15 @@ const Dashboard = () => {
 
   return (
     <div className='h-full overflow-y-scroll p-6'>
+      {/* Back to Home Button */}
+      <button
+        onClick={() => navigate('/')}
+        className='mb-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-orange-50 hover:border-orange-300 transition-all text-gray-700 hover:text-orange-600 font-medium'
+      >
+        <Home className='w-4 h-4' />
+        <span>Back to Home</span>
+      </button>
+
       <div className='flex justify-start gap-4 flex-wrap'>
         {/* Total Creations Card  */}
         <div className='flex justify-between items-center w-72 p-4 px-6 bg-white rounded-xl border border-gray-200'>

@@ -1,19 +1,24 @@
 import { FileText, Sparkles } from 'lucide-react';
 import React, { useState } from 'react'
 import axios from 'axios'
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Markdown from 'react-markdown';
+import PremiumGate from '../components/PremiumGate';
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000'
 
 const ReviewResume = () => {
+    const { user, token } = useAuth();
+
+    if (user?.plan !== 'premium') {
+      return <PremiumGate feature="Resume Review" />;
+    }
 
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const [content, setContent] = useState('')
 
-    const {getToken} = useAuth()
       
     const onSubmitHandler = async (e)=>{
           e.preventDefault();
@@ -23,7 +28,7 @@ const ReviewResume = () => {
               const formData = new FormData()
               formData.append('resume', input)
 
-              const { data } = await axios.post('/api/ai/resume-review',formData, {headers: {Authorization: `Bearer ${await getToken()}`}})
+              const { data } = await axios.post('/api/ai/resume-review',formData, {headers: {Authorization: `Bearer ${token}`}})
 
             if (data.success) {
               setContent(data.content)

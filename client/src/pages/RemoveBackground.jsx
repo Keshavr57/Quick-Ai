@@ -1,18 +1,40 @@
-import { Eraser, Sparkles } from 'lucide-react';
+import { Eraser, Sparkles, Download } from 'lucide-react';
 import React, { useState } from 'react'
 import axios from 'axios'
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import PremiumGate from '../components/PremiumGate';
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
 
 const RemoveBackground = () => {
+  const { user, token } = useAuth();
+
+  if (user?.plan !== 'premium') {
+    return <PremiumGate feature="Remove Background" />;
+  }
 
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [content, setContent] = useState('')
 
-  const {getToken} = useAuth()
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(content);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `aivora-background-removed-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Image downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download image');
+    }
+  };
     
   const onSubmitHandler = async (e)=>{
         e.preventDefault();
@@ -22,7 +44,7 @@ const RemoveBackground = () => {
           const formData = new FormData()
           formData.append('image', input)
 
-          const { data } = await axios.post('/api/ai/remove-image-background',formData, {headers: {Authorization: `Bearer ${await getToken()}`}})
+          const { data } = await axios.post('/api/ai/remove-image-background',formData, {headers: {Authorization: `Bearer ${token}`}})
 
          if (data.success) {
           setContent(data.content)
@@ -36,9 +58,10 @@ const RemoveBackground = () => {
       }
 
   return (
-    <div className='h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700'>
-      {/* left col */}
-      <form onSubmit={onSubmitHandler} className='w-full max-w-lg p-4 bg-white rounded-lg border border-gray-200'>
+    <div className='h-full overflow-y-scroll p-6 text-slate-700'>
+      <div className='max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        {/* left col */}
+        <form onSubmit={onSubmitHandler} className='bg-white rounded-xl border border-gray-200 p-6 shadow-md h-fit'>
           <div className='flex items-center gap-3'>
             <Sparkles className='w-6 text-[#FF4938]'/>
             <h1 className='text-xl font-semibold'>Background Removal</h1>
@@ -49,20 +72,32 @@ const RemoveBackground = () => {
 
           <p className='text-xs text-gray-500 font-light mt-1'>Supports JPG, PNG, and other image formats</p>
           
-          <button disabled={loading} className='w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#F6AB41] to-[#FF4938] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
+          <button disabled={loading} className='w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#F6AB41] to-[#FF4938] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer hover:from-[#F59E30] hover:to-[#EE3827] transition-all shadow-md hover:shadow-lg'>
             {
               loading ? <span className='w-4 h-4 my-1 rounded-full border-2 border-t-transparent animate-spin'></span>
               : <Eraser className='w-5'/>
             }
             Remove background
           </button>
-      </form>
-      {/* Right col */}
-      <div className='w-full max-w-lg p-4 bg-white rounded-lg flex flex-col border border-gray-200 min-h-96'>
+        </form>
+        
+        {/* Right col */}
+        <div className='bg-white rounded-xl border border-gray-200 p-6 shadow-md flex flex-col min-h-[600px]'>
 
-            <div className='flex items-center gap-3'>
-              <Eraser className='w-5 h-5 text-[#FF4938]' />
-              <h1 className='text-xl font-semibold'>Processed Image</h1>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <Eraser className='w-5 h-5 text-[#FF4938]' />
+                <h1 className='text-xl font-semibold'>Processed Image</h1>
+              </div>
+              {content && (
+                <button
+                  onClick={handleDownload}
+                  className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all shadow-md hover:shadow-lg'
+                >
+                  <Download className='w-4 h-4' />
+                  <span className='text-sm font-medium'>Download</span>
+                </button>
+              )}
             </div>
 
             {
@@ -76,10 +111,12 @@ const RemoveBackground = () => {
                 </div>
               ) :
               (
-                <img src={content} alt="image" className='mt-3 w-full h-full'/>
+                <div className='mt-3 flex-1 flex items-center justify-center'>
+                  <img src={content} alt="image" className='max-w-full max-h-full object-contain rounded-lg shadow-lg'/>
+                </div>
               )
             }
-            
+        </div>
       </div>
     </div>
   )

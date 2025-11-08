@@ -1,14 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-import { SignIn, useUser } from '@clerk/clerk-react'
+import { useAuth } from '../context/AuthContext'
 import aivoraIcon from '../assets/logo.png'
 
 const Layout = () => {
   const navigate = useNavigate()
   const [sidebar, setSidebar] = useState(false)
-  const { user } = useUser()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-white">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return user ? (
     <div className="flex flex-col items-start justify-start h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-white">
@@ -55,11 +72,7 @@ const Layout = () => {
         </div>
       </div>
     </div>
-  ) : (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-white">
-      <SignIn />
-    </div>
-  )
+  ) : null;
 }
 
 export default Layout

@@ -1,14 +1,14 @@
 import React from "react";
 import { AiToolsData } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "../context/AuthContext";
 
 const AiTools = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useAuth();
 
   return (
-    <div className="relative px-6 sm:px-10 lg:px-20 py-20 overflow-hidden bg-gradient-to-b from-orange-50 via-white to-orange-100">
+    <div id="ai-tools" className="relative px-6 sm:px-10 lg:px-20 py-20 overflow-hidden bg-gradient-to-b from-orange-50 via-white to-orange-100">
       {/* Floating circles for fun colorful glow */}
       <div className="absolute top-10 left-10 w-56 h-56 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-72 h-72 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
