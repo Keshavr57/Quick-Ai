@@ -198,9 +198,16 @@ const WriteArticle = () => {
             )}
           </div>
 
-          {!content ? (
+          {loading ? (
+            <div className="flex-1 flex justify-center items-center">
+              <div className="text-center flex flex-col items-center gap-5">
+                <div className="w-12 h-12 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin"></div>
+                <p className="text-gray-600 font-medium">Generating article...</p>
+              </div>
+            </div>
+          ) : !content ? (
             <div className="flex-1 flex justify-center items-center text-gray-400 text-center">
-              <p>Enter a topic and click “Generate Article” to see your result here.</p>
+              <p>Enter a topic and click "Generate Article" to see your result here.</p>
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto mt-3">

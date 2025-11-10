@@ -2,10 +2,20 @@ import React from "react";
 import { AiToolsData } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import toast from 'react-hot-toast';
 
 const AiTools = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const handleToolClick = (path) => {
+    if (user) {
+      navigate(path);
+    } else {
+      toast.error('Please login first to use AI tools');
+      navigate('/login');
+    }
+  };
 
   return (
     <div id="ai-tools" className="relative px-6 sm:px-10 lg:px-20 py-20 overflow-hidden bg-gradient-to-b from-orange-50 via-white to-orange-100">
@@ -28,7 +38,7 @@ const AiTools = () => {
         {AiToolsData.map((tool, index) => (
           <div
             key={index}
-            onClick={() => user && navigate(tool.path)}
+            onClick={() => handleToolClick(tool.path)}
             className="group relative bg-white/90 backdrop-blur-sm border border-orange-100 hover:border-orange-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer hover:-translate-y-2 overflow-hidden"
           >
             {/* Glow background */}
@@ -63,7 +73,10 @@ const AiTools = () => {
 
             {/* Button inside each card */}
             <button
-              onClick={() => user && navigate(tool.path)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToolClick(tool.path);
+              }}
               className="relative z-10 mt-5 inline-block bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
             >
               Open Tool

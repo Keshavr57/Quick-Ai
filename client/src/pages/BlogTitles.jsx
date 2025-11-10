@@ -145,7 +145,14 @@ const BlogTitles = () => {
               )}
             </div>
             {
-              !content ? (
+              loading ? (
+                <div className='flex-1 flex justify-center items-center'>
+                  <div className='text-sm flex flex-col items-center gap-5 text-purple-500'>
+                    <div className='w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin'></div>
+                    <p className='text-gray-600 font-medium'>Generating blog titles...</p>
+                  </div>
+                </div>
+              ) : !content ? (
                 <div className='flex-1 flex justify-center items-center'>
                   <div className='text-sm flex flex-col items-center gap-5 text-gray-400'>
                     <Hash className='w-9 h-9' />
