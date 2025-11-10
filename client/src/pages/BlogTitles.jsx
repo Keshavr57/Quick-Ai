@@ -3,10 +3,8 @@ import { Hash, Sparkles, Download } from 'lucide-react'
 import React, { useState } from 'react'
 import toast from 'react-hot-toast'
 import Markdown from 'react-markdown'
-import axios from 'axios'
+import axios from '../utils/axios'
 import { jsPDF } from 'jspdf'
-
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
 
 const BlogTitles = () => {
 

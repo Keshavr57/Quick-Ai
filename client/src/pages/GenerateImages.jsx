@@ -1,11 +1,9 @@
 import { Image, Sparkles, Download } from 'lucide-react'
 import React, { useState } from 'react'
-import axios from 'axios'
+import axios from '../utils/axios'
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import PremiumGate from '../components/PremiumGate';
-
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:3000';
 
 const GenerateImages = () => {
   const { user, token } = useAuth();

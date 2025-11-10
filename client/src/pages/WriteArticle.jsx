@@ -6,8 +6,6 @@ import toast from "react-hot-toast";
 import Markdown from "react-markdown";
 import { jsPDF } from "jspdf";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
-
 const WriteArticle = () => {
   const articleLength = [
     { length: 800, text: "Short (500-800 words)" },
