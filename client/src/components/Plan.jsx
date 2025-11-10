@@ -4,7 +4,7 @@ import { Check, Loader } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Base URL is already set in axios.js, no need to set it again here
 
 const Plan = () => {
   const { user, token, refreshUser } = useAuth();
