@@ -115,6 +115,12 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET) {
   });
 }
 
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 app.use('/api/auth', authRouter)
 app.use('/api/ai', aiRouter)
 app.use('/api/user', userRouter)
