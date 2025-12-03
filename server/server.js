@@ -18,6 +18,12 @@ app.use(express.json())
 
 app.get('/', (req, res)=>res.send('Server is Live!'))
 
+// Test endpoint to verify proxy
+app.get('/api/test', (req, res) => {
+  console.log('🎯 TEST ENDPOINT HIT!');
+  res.json({ success: true, message: 'Proxy is working!' });
+})
+
 // Manual endpoint to update user plan (for testing)
 app.post('/api/user/update-plan', auth, async (req, res) => {
   try {
