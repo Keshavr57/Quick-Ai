@@ -1,4 +1,5 @@
- import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRight, Mail, Lock, User, AlertCircle } from 'lucide-react';
@@ -12,7 +13,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +21,7 @@ const Signup = () => {
     setLoading(true);
 
     const result = await signup(name, email, password);
-    
+
     if (result.success) {
       toast.success('Account created successfully!');
       navigate('/ai');
@@ -28,7 +29,7 @@ const Signup = () => {
       setError(result.message);
       toast.error(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -122,6 +123,34 @@ const Signup = () => {
               )}
             </button>
           </form>
+
+          <div className="mt-4 flex items-center justify-center my-4">
+            <div className="border-t border-gray-200 flex-grow"></div>
+            <span className="px-4 text-gray-500 text-sm">OR</span>
+            <div className="border-t border-gray-200 flex-grow"></div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setLoading(true);
+                const result = await googleLogin(credentialResponse.credential);
+                if (result.success) {
+                  toast.success('Account created successfully!');
+                  navigate('/ai');
+                } else {
+                  setError(result.message);
+                  toast.error(result.message);
+                }
+                setLoading(false);
+              }}
+              onError={() => {
+                setError('Google Signup Failed');
+                toast.error('Google Signup Failed');
+              }}
+              useOneTap
+            />
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">

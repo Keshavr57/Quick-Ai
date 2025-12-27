@@ -1,6 +1,7 @@
 import prisma from '../configs/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -60,6 +61,69 @@ export const signup = async (req, res) => {
   }
 };
 
+// Google Login
+export const googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    // Verify Google Token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, sub: googleId, name, picture: avatar } = payload;
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      // If user exists but doesn't have googleId, update it
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, avatar: user.avatar || avatar },
+        });
+      }
+    } else {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          googleId,
+          avatar,
+          password: null, // Password is null for Google users
+        },
+      });
+    }
+
+    // Generate token
+    const token = generateToken(user.id);
+
+    res.json({
+      success: true,
+      message: 'Google login successful',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        plan: user.plan,
+        freeUsage: user.freeUsage,
+        image: user.avatar,
+      },
+    });
+
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Login
 export const login = async (req, res) => {
   try {
@@ -77,6 +141,10 @@ export const login = async (req, res) => {
     }
 
     // Check password
+    if (!user.password) {
+      return res.status(401).json({ success: false, message: 'Please login with Google' });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });

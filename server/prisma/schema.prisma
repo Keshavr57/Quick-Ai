@@ -10,11 +10,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
-  password  String
+  password  String?
+  googleId  String?  @unique
+  avatar    String?
   plan      String   @default("free")
   freeUsage Int      @default(0) @map("free_usage")
   createdAt DateTime @default(now()) @map("created_at")
