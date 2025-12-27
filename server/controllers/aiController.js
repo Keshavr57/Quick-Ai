@@ -7,17 +7,17 @@ import pdf from 'pdf-parse/lib/pdf-parse.js'
 import FormData from 'form-data'
 
 const AI = new OpenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1"
 });
 
-export const generateArticle = async (req, res)=>{
+export const generateArticle = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const { prompt, length } = req.body;
 
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             max_tokens: length,
@@ -42,13 +42,13 @@ export const generateArticle = async (req, res)=>{
     }
 }
 
-export const generateBlogTitle = async (req, res)=>{
+export const generateBlogTitle = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const { prompt } = req.body;
 
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             max_tokens: 100,
@@ -73,20 +73,20 @@ export const generateBlogTitle = async (req, res)=>{
     }
 }
 
-export const generateImage = async (req, res)=>{
+export const generateImage = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const { prompt, publish } = req.body;
 
         console.log('🎨 Image generation request:', { prompt });
-        
+
         // Using Pollinations.ai - Completely FREE, no API key needed!
         const cleanPrompt = prompt.trim().replace(/\s+/g, ' ');
         const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}`;
-        
+
         console.log('📡 Fetching image from Pollinations.ai...');
         console.log('URL:', imageUrl);
-        
+
         // Download the image with proper headers
         const response = await axios({
             method: 'GET',
@@ -129,7 +129,7 @@ export const generateImage = async (req, res)=>{
             statusText: error.response?.statusText,
             message: error.message
         });
-        
+
         // Better error handling
         let errorMessage = 'Failed to generate image. Please try again.';
         if (error.code === 'ECONNABORTED') {
@@ -137,12 +137,12 @@ export const generateImage = async (req, res)=>{
         } else if (error.message) {
             errorMessage = error.message;
         }
-        
+
         res.json({ success: false, message: errorMessage });
     }
 }
 
-export const removeImageBackground = async (req, res)=>{
+export const removeImageBackground = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const image = req.file;
@@ -173,7 +173,7 @@ export const removeImageBackground = async (req, res)=>{
     }
 }
 
-export const removeImageObject = async (req, res)=>{
+export const removeImageObject = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const { object } = req.body;
@@ -183,7 +183,8 @@ export const removeImageObject = async (req, res)=>{
 
         const imageUrl = cloudinary.url(public_id, {
             transformation: [{ effect: `gen_remove:${object}` }],
-            resource_type: 'image'
+            resource_type: 'image',
+            secure: true
         });
 
         await prisma.creation.create({
@@ -203,12 +204,12 @@ export const removeImageObject = async (req, res)=>{
     }
 }
 
-export const resumeReview = async (req, res)=>{
+export const resumeReview = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
         const resume = req.file;
 
-        if(resume.size > 5 * 1024 * 1024){
+        if (resume.size > 5 * 1024 * 1024) {
             return res.json({ success: false, message: "Resume file size exceeds allowed size (5MB)." });
         }
 
@@ -218,7 +219,7 @@ export const resumeReview = async (req, res)=>{
         const prompt = `Review the following resume and provide constructive feedback on its strengths, weaknesses, and areas for improvement. Resume Content:\n\n${pdfData.text}`;
 
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             max_tokens: 1000,
