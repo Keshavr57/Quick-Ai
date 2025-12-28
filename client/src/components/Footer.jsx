@@ -45,14 +45,37 @@ const Footer = () => {
               Company
             </h2>
             <ul className="text-sm space-y-2">
-              {["Home", "About us", "Contact us", "Privacy policy"].map(
+              {[
+                { name: "Home", path: "/" },
+                { name: "About us", path: "/#about" },
+                { name: "Contact us", path: "/contact" },
+                { name: "Privacy policy", path: "/privacy" },
+                { name: "Terms & Conditions", path: "/terms" },
+                { name: "Refund Policy", path: "/refund" },
+                { name: "Shipping Policy", path: "/shipping" }
+              ].map(
                 (link, i) => (
                   <li key={i}>
                     <a
-                      href="#"
+                      href={link.path}
+                      onClick={(e) => {
+                        if (link.path.startsWith('/#')) {
+                          e.preventDefault();
+                          navigate('/');
+                          setTimeout(() => {
+                            const id = link.path.substring(2);
+                            const element = document.getElementById(id);
+                            if (element) element.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        } else {
+                          e.preventDefault();
+                          navigate(link.path);
+                          window.scrollTo(0, 0);
+                        }
+                      }}
                       className="text-gray-600 hover:text-orange-600 transition-colors duration-200"
                     >
-                      {link}
+                      {link.name}
                     </a>
                   </li>
                 )

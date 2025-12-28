@@ -78,6 +78,15 @@ export const generateImage = async (req, res) => {
         const userId = req.userId; // From JWT auth middleware
         const { prompt, publish } = req.body;
 
+        // Premium Check
+        if (req.user.plan !== 'premium') {
+            return res.status(403).json({
+                success: false,
+                message: "This feature is available for Premium users only.",
+                isPremium: true
+            });
+        }
+
         console.log('🎨 Image generation request:', { prompt });
 
         // Using Pollinations.ai - Completely FREE, no API key needed!
@@ -145,6 +154,16 @@ export const generateImage = async (req, res) => {
 export const removeImageBackground = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
+
+        // Premium Check
+        if (req.user.plan !== 'premium') {
+            return res.status(403).json({
+                success: false,
+                message: "This feature is available for Premium users only.",
+                isPremium: true
+            });
+        }
+
         const image = req.file;
 
         const { secure_url } = await cloudinary.uploader.upload(image.path, {
@@ -176,6 +195,16 @@ export const removeImageBackground = async (req, res) => {
 export const removeImageObject = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
+
+        // Premium Check
+        if (req.user.plan !== 'premium') {
+            return res.status(403).json({
+                success: false,
+                message: "This feature is available for Premium users only.",
+                isPremium: true
+            });
+        }
+
         const { object } = req.body;
         const image = req.file;
 
@@ -207,6 +236,16 @@ export const removeImageObject = async (req, res) => {
 export const resumeReview = async (req, res) => {
     try {
         const userId = req.userId; // From JWT auth middleware
+
+        // Premium Check
+        if (req.user.plan !== 'premium') {
+            return res.status(403).json({
+                success: false,
+                message: "This feature is available for Premium users only.",
+                isPremium: true
+            });
+        }
+
         const resume = req.file;
 
         if (resume.size > 5 * 1024 * 1024) {

@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import PremiumModal from './PremiumModal'
 import { Check, Loader } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -8,13 +10,26 @@ import toast from 'react-hot-toast'
 
 const Plan = () => {
   const { user, token, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const handlePlanChange = async (planName) => {
+    if (!user) {
+      toast('Please login to upgrade your plan', { icon: '🔐' });
+      navigate('/login');
+      return;
+    }
+
+    if (planName.toLowerCase() === 'premium') {
+      setShowModal(true);
+      return;
+    }
+
     try {
       setLoading(planName.toLowerCase());
-      
-      const response = await axios.post('/api/user/update-plan', 
+
+      const response = await axios.post('/api/user/update-plan',
         { plan: planName.toLowerCase() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -62,6 +77,7 @@ const Plan = () => {
 
   return (
     <div className='max-w-4xl mx-auto z-20 my-20 px-4'>
+      <PremiumModal isOpen={showModal} onClose={() => setShowModal(false)} />
       <div className='text-center mb-12'>
         <h2 className='text-slate-700 text-4xl md:text-5xl font-semibold mb-4'>Choose Your Plan</h2>
         <p className='text-gray-500 max-w-lg mx-auto'>Start for free and scale up as you grow. Find the perfect plan for your content creation needs.</p>
@@ -71,9 +87,8 @@ const Plan = () => {
         {plans.map((plan, index) => (
           <div
             key={index}
-            className={`relative bg-white rounded-2xl p-8 border-2 ${
-              plan.popular ? 'border-orange-500 shadow-xl' : 'border-gray-200'
-            } transition-all hover:shadow-lg`}
+            className={`relative bg-white rounded-2xl p-8 border-2 ${plan.popular ? 'border-orange-500 shadow-xl' : 'border-gray-200'
+              } transition-all hover:shadow-lg`}
           >
             {plan.popular && (
               <div className='absolute -top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold'>
@@ -96,13 +111,12 @@ const Plan = () => {
             <button
               onClick={() => handlePlanChange(plan.name)}
               disabled={loading === plan.name.toLowerCase() || user?.plan === plan.name.toLowerCase()}
-              className={`w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                user?.plan === plan.name.toLowerCase()
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  : plan.popular
+              className={`w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${user?.plan === plan.name.toLowerCase()
+                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                : plan.popular
                   ? 'bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900 disabled:opacity-50'
-              }`}
+                }`}
             >
               {loading === plan.name.toLowerCase() ? (
                 <>

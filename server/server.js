@@ -7,6 +7,7 @@ import authRouter from './routes/authRoutes.js';
 import connectCloudinary from './configs/cloudinary.js';
 import userRouter from './routes/userRoutes.js';
 import { auth } from './middlewares/auth.js';
+import paymentRouter from './routes/paymentRoutes.js';
 import Stripe from 'stripe';
 
 const app = express()
@@ -16,7 +17,7 @@ await connectCloudinary()
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req, res)=>res.send('Server is Live!'))
+app.get('/', (req, res) => res.send('Server is Live!'))
 
 // Test endpoint to verify proxy
 app.get('/api/test', (req, res) => {
@@ -29,21 +30,21 @@ app.post('/api/user/update-plan', auth, async (req, res) => {
   try {
     const userId = req.userId;
     const { plan } = req.body;
-    
+
     if (!plan || !['free', 'premium'].includes(plan)) {
       return res.status(400).json({ success: false, message: 'Invalid plan. Must be "free" or "premium"' });
     }
-    
+
     // Update user plan in database
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { plan }
     });
-    
+
     console.log(`Updated user ${userId} to ${plan} plan`);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: `User plan updated to ${plan}`,
       user: {
         id: updatedUser.id,
@@ -52,7 +53,7 @@ app.post('/api/user/update-plan', auth, async (req, res) => {
         plan: updatedUser.plan
       }
     });
-    
+
   } catch (error) {
     console.error('Error updating user plan:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -65,7 +66,7 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET) {
   app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
-    
+
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
       console.log(`Received webhook event: ${event.type}`);
@@ -124,9 +125,10 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRouter)
 app.use('/api/ai', aiRouter)
 app.use('/api/user', userRouter)
+app.use('/api/payment', paymentRouter)
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, ()=>{
-    console.log('Server is running on port', PORT);
+app.listen(PORT, () => {
+  console.log('Server is running on port', PORT);
 })
