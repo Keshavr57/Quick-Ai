@@ -2,9 +2,7 @@
 node_modules
 
 # Environment variables (IMPORTANT: Never commit this!)
-.env
-.env.local
-.env.production
+
 
 # Prisma generated files
 /generated/prisma

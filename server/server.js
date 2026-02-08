@@ -9,6 +9,7 @@ import userRouter from './routes/userRoutes.js';
 import { auth } from './middlewares/auth.js';
 import paymentRouter from './routes/paymentRoutes.js';
 import Stripe from 'stripe';
+import './services/keepAlive.js'; // Auto-starts in production
 
 const app = express()
 
@@ -19,11 +20,14 @@ app.use(express.json())
 
 app.get('/', (req, res) => res.send('Server is Live!'))
 
-// Test endpoint to verify proxy
-app.get('/api/test', (req, res) => {
-  console.log('🎯 TEST ENDPOINT HIT!');
-  res.json({ success: true, message: 'Proxy is working!' });
-})
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
 
 // Manual endpoint to update user plan (for testing)
 app.post('/api/user/update-plan', auth, async (req, res) => {
